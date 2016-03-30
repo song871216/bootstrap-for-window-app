@@ -100,6 +100,192 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
     }];
   })
 
+  /**
+* Author: Rush SONG
+* Description: modal window size resize directive
+* Upgrade angular-ui-bootstrap to latest version
+*/
+.directive('modalResiable', function(){
+  // Layout of popup window, buttons and labels are out of windows when narrowing.
+      var runOnce = false;
+      var activeResizable = function(elem, resize){
+          resize = resize === 'true' ? true : false;
+          if(resize && !runOnce){
+            runOnce = true;
+            elem.resizable({
+                animate: true,
+                animateDuration: 'normal',
+                ghost: true,
+                helper: "ui-resizable-helper"
+            });
+          }
+      };
+
+      return {
+          restrict: 'A',
+          require: ['?^ngModel'],
+          link: function(scope, elem, attrs, ctrls){
+
+                var resize = ctrls[0].$modelValue;
+
+                scope.$watch(ctrls[0].$modelValue, function(){
+
+                   resize = ctrls[0].$modelValue;
+                   activeResizable(elem, resize);
+                });
+
+                activeResizable(elem, resize);
+          }
+      };
+    //END
+  })
+
+  /**
+* Author: Rush SONG
+* Description: Modal window draggable feature for web ui
+* Upgrade angular-ui-bootstrap to latest version
+*/
+.directive('modalDraggable', function(){
+      return {
+          restrict: 'A',
+          compile: function(element, attrs, transclude) {
+              return {
+                  pre: function preLink(scope, element, attrs, controller) {
+                  },
+                  post: function postLink(scope, element, attrs, controller) {
+                                var cssHandler = "div.modal-header";
+
+                                element.draggable({
+                                            handle: cssHandler,
+                                            cursorAt:{cursor:"crosshair"},
+                                            stop: function(event, ui){
+                                                console.log("-----------------------------------------------------------------");
+                                                // console.log(new Date());
+                                                //get modal render offset
+                                                var modalRenderOffset = $('div.modal-render').offset();
+                                                var renderTop = modalRenderOffset.top;
+                                                var renderLeft = modalRenderOffset.left;
+                                                // get window visible width and height
+                                                var w = $(window).width();
+                                                var h = $(window).height();
+                                                // console.log("The window visiable size is: [width: "+w+", height: "+h+"]");
+
+                                                //get modal content offset
+                                                var modalContentOffset = $('div.modal-content').offset();
+                                                // console.log('modal content offset is: [top: '+ modalContentOffset.top+", left: "+modalContentOffset.left+"]");
+                                                var modalWidth = $('div.modal-content').width();
+
+                                                //get dialog offset
+                                                var dlgOffset = $('div.modal-dialog').offset();
+                                                var dlgOffsetLeft = modalContentOffset.left - dlgOffset.left;
+                                                var dlgOffsetTop = modalContentOffset.top - dlgOffset.top;
+                                                // console.log("current dialog static position is: [left: " + dlgOffsetLeft + ", top: " + dlgOffsetTop + "]");
+                                                dlgOffsetLeft = parseInt(dlgOffsetLeft, 0);
+                                                dlgOffsetTop = parseInt(dlgOffsetTop, 0);
+
+                                                //get the distance between render window and modal dialog
+                                                var distance = $('div.modal-dialog').offset().top - renderTop;
+                                                // console.log("The distance is: "+ distance);
+
+                                                //calculate the window current offset
+                                                var winOffsetTop = dlgOffsetTop + dlgOffset.top;
+                                                var winOffsetLeft = dlgOffsetLeft + dlgOffset.left;
+                                                // console.log("Current window offset, left: " + winOffsetLeft + ", top: " + winOffsetTop);
+
+                                                //get the scroll distance to top
+                                                var scrollTop = $('div.modal-render').scrollTop();
+                                                // console.log("current scroll top is:" + scrollTop);
+
+                                                var fOffsetTop = winOffsetTop - modalRenderOffset.top + scrollTop;
+                                                var fOffsetLeft = winOffsetLeft - modalRenderOffset.left;
+                                                console.log('Current the absolute position is: [left:'+fOffsetLeft+", top: "+fOffsetTop+"]");
+
+                                                var newOffsetTop = fOffsetTop < 0 ? 0 : fOffsetTop;
+
+                                                var newOffsetLeft = fOffsetLeft >= w ? w - 10 : fOffsetLeft;
+                                                if( newOffsetLeft < 0 && Math.abs( newOffsetLeft ) >= modalWidth ){
+                                                    newOffsetLeft += 10;
+                                                }
+
+                                                //finall, calculate the offset
+                                                newOffsetTop += renderTop;
+                                                newOffsetLeft += renderLeft;
+                                                $('div.modal-content').offset({
+                                                    top: newOffsetTop,
+                                                    left: newOffsetLeft
+                                                });
+
+                                                console.log("-----------------------------------------------------------------");
+                                            }
+                                           // containment: '.modal-backdrop'
+                                  });
+                                $('div.modal-header').css('cursor', 'move');
+
+                                // Inline styles have the highest priority and will overwrite any other settings defined in a CSS file.
+                                // Should give other modules chances to use their own styles. A direct consequence here is breaking the
+                                // header background-color settings of angular-dialog-service, which results in all kinds of dialogs
+                                // (error, confirm, etc.)have the same background color in header. The following changes have been moved
+                                // to bootstrap.min.css.
+                                // $('div.modal-header').css('padding', '10px');
+                                // $('div.modal-header').css('background-color', '#eee');
+
+                                var btnId = 'closeBtn' + Date.parse(new Date());
+                                var closeIcon = "<button type=\"button\" id=\""+btnId+"\" style=\"background-color:inherit;\
+                                width:20px;height:20px;border:none;position:relative;float:right;\
+                                display: inline-block;\
+                                text-align: center;\
+                                text-decoration: none;\
+                                padding: 0px 6px 0px 6px;\
+                                font: bold 14px/25px Arial, sans-serif; \
+                                text-shadow: 1px 1px 1px rgba(255,255,255, .22);\
+                                -webkit-border-radius: 30px;\
+                                -moz-border-radius: 30px;\
+                                border-radius: 30px;\
+                                -webkit-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);\
+                                -moz-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);\
+                                box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);\
+                                -webkit-transition: all 0.15s ease;\
+                                -moz-transition: all 0.15s ease;\
+                                -o-transition: all 0.15s ease;\
+                                -ms-transition: all 0.15s ease;\
+                                transition: all 0.15s ease;\
+                                title=\"Close\"\
+                                \"><font color=\"red\">&Chi;</font></button>";
+                                var html = $(element[0]).html();
+                                var closeButton = $(html).children('button.close');
+                                if( angular.isDefined(closeButton.length) && closeButton.length === 0){
+                                            $(element[0]).find('div.modal-header').prepend(closeIcon);
+                                            var btnEl = $(element[0]).find('#'+btnId);
+                                            $(btnEl).on('click',function(obj){
+                                                if(scope.$parent.cancel){
+                                                  scope.$parent.cancel();
+                                                }else{
+                                                  scope.$parent.$dismiss('Default cancel event..');
+                                                }
+                                            });
+
+                                            $(btnEl).hover(function(){
+                                                  $(this).css({
+                                                        backgroundColor: "red"
+                                                  });
+													$(this).children().css({
+														color: '#000000'
+													});
+                                            }, function(){
+                                                  $(this).css({
+                                                        backgroundColor: "inherit"
+                                                  });
+													$(this).children().css({
+														color: 'red'
+													});
+                                            });
+                                }
+                  }
+              };
+          }
+  };
+})
+
 /**
  * A helper directive for the $modal service. It creates a backdrop element.
  */
@@ -146,6 +332,17 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
         element.addClass(attrs.windowTopClass || '');
         scope.size = attrs.size;
 
+        //Upgrade angular-ui-bootstrap to latest version
+        scope.width = attrs.mywidth;
+        scope.height = attrs.myheight;
+        // end
+        //Layout of popup window, buttons and labels are out of windows when narrowing.
+
+        scope.resize = attrs.resize;
+
+        scope.closeAsStateChange = attrs.closeAsStateChange;
+        //end
+
         scope.close = function(evt) {
           var modal = $modalStack.getTop();
           if (modal && modal.value.backdrop &&
@@ -156,6 +353,40 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
             $modalStack.dismiss(modal.key, 'backdrop click');
           }
         };
+
+        /**
+        * Author: Rush SONG
+        *  Layout of popup window, buttons and labels are out of windows when narrowing.
+        */
+        if( angular.isDefined( scope.closeAsStateChange ) && scope.closeAsStateChange ){
+            scope.$on('$stateChangeSuccess', function(obj, newState, oldState){
+                var modal = $modalStack.getTop();
+                if (modal) {
+                  $modalStack.dismiss(modal.key, 'backdrop click');
+                }
+            });
+        }
+
+        /**
+        * END
+        */
+
+       scope.autoResizeWindow = {};
+        var isSizeEmpty = false;
+
+        if( angular.isDefined( scope.width ) ){
+             scope.autoResizeWindow.width = scope.width;
+             isSizeEmpty = true;
+        }
+
+        if( angular.isDefined( scope.height ) ){
+             scope.autoResizeWindow.height = scope.height;
+             isSizeEmpty = true;
+        }
+
+        if( isSizeEmpty ){
+          scope.size = undefined;
+        }
 
         // moved from template to fix issue #2280
         element.on('click', scope.close);
@@ -259,15 +490,11 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
       };
 
       //Modal focus behavior
-      var tabableSelector = 'a[href], area[href], input:not([disabled]), ' +
+      var focusableElementList;
+      var focusIndex = 0;
+      var tababbleSelector = 'a[href], area[href], input:not([disabled]), ' +
         'button:not([disabled]),select:not([disabled]), textarea:not([disabled]), ' +
         'iframe, object, embed, *[tabindex], *[contenteditable=true]';
-
-      function isVisible(element) {
-        return !!(element.offsetWidth ||
-          element.offsetHeight ||
-          element.getClientRects().length);
-      }
 
       function backdropIndex() {
         var topBackdropIndex = -1;
@@ -395,15 +622,15 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
               break;
             }
             case 9: {
-              var list = $modalStack.loadFocusElementList(modal);
+              $modalStack.loadFocusElementList(modal);
               var focusChanged = false;
               if (evt.shiftKey) {
-                if ($modalStack.isFocusInFirstItem(evt, list) || $modalStack.isModalFocused(evt, modal)) {
-                  focusChanged = $modalStack.focusLastFocusableElement(list);
+                if ($modalStack.isFocusInFirstItem(evt) || $modalStack.isModalFocused(evt, modal)) {
+                  focusChanged = $modalStack.focusLastFocusableElement();
                 }
               } else {
-                if ($modalStack.isFocusInLastItem(evt, list)) {
-                  focusChanged = $modalStack.focusFirstFocusableElement(list);
+                if ($modalStack.isFocusInLastItem(evt)) {
+                  focusChanged = $modalStack.focusFirstFocusableElement();
                 }
               }
 
@@ -411,7 +638,6 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
                 evt.preventDefault();
                 evt.stopPropagation();
               }
-
               break;
             }
           }
@@ -466,8 +692,16 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
           'window-top-class': modal.windowTopClass,
           'size': modal.size,
           'index': openedWindows.length() - 1,
-          'animate': 'animate'
+          'animate': 'animate',
+          //new added two parameter self-defined with and height with px
+          'mywidth': modal.width,
+          'myheight': modal.height,
+          //end
+          //if this set true, user can resize window
+          'resize': modal.resize,
+          'close-as-state-change': modal.closeAsStateChange
         }).html(modal.content);
+
         if (modal.animation) {
           angularDomEl.attr('modal-animation', 'true');
         }
@@ -481,6 +715,8 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
 
         openedWindows.top().value.modalDomEl = angularDomEl;
         openedWindows.top().value.modalOpener = modalOpener;
+
+        $modalStack.clearFocusListCache();
       };
 
       function broadcastClosing(modalWindow, resultOrReason, closing) {
@@ -527,17 +763,16 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
         }
       };
 
-      $modalStack.focusFirstFocusableElement = function(list) {
-        if (list.length > 0) {
-          list[0].focus();
+      $modalStack.focusFirstFocusableElement = function() {
+        if (focusableElementList.length > 0) {
+          focusableElementList[0].focus();
           return true;
         }
         return false;
       };
-
-      $modalStack.focusLastFocusableElement = function(list) {
-        if (list.length > 0) {
-          list[list.length - 1].focus();
+      $modalStack.focusLastFocusableElement = function() {
+        if (focusableElementList.length > 0) {
+          focusableElementList[focusableElementList.length - 1].focus();
           return true;
         }
         return false;
@@ -553,29 +788,32 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
         return false;
       };
 
-      $modalStack.isFocusInFirstItem = function(evt, list) {
-        if (list.length > 0) {
-          return (evt.target || evt.srcElement) === list[0];
+      $modalStack.isFocusInFirstItem = function(evt) {
+        if (focusableElementList.length > 0) {
+          return (evt.target || evt.srcElement) === focusableElementList[0];
         }
         return false;
       };
 
-      $modalStack.isFocusInLastItem = function(evt, list) {
-        if (list.length > 0) {
-          return (evt.target || evt.srcElement) === list[list.length - 1];
+      $modalStack.isFocusInLastItem = function(evt) {
+        if (focusableElementList.length > 0) {
+          return (evt.target || evt.srcElement) === focusableElementList[focusableElementList.length - 1];
         }
         return false;
+      };
+
+      $modalStack.clearFocusListCache = function() {
+        focusableElementList = [];
+        focusIndex = 0;
       };
 
       $modalStack.loadFocusElementList = function(modalWindow) {
-        if (modalWindow) {
-          var modalDomE1 = modalWindow.value.modalDomEl;
-          if (modalDomE1 && modalDomE1.length) {
-            var elements = modalDomE1[0].querySelectorAll(tabableSelector);
-            return elements ?
-              Array.prototype.filter.call(elements, function(element) {
-                return isVisible(element);
-              }) : elements;
+        if (focusableElementList === undefined || !focusableElementList.length) {
+          if (modalWindow) {
+            var modalDomE1 = modalWindow.value.modalDomEl;
+            if (modalDomE1 && modalDomE1.length) {
+              focusableElementList = modalDomE1[0].querySelectorAll(tababbleSelector);
+            }
           }
         }
       };
@@ -605,7 +843,39 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
             return promiseChain;
           };
 
+          /**
+           * @author jiqings
+           * @description set the configs if not set in config options
+           * */
+          function defaultConfigs(modalOptions){
+              if( angular.isUndefined(modalOptions.keyboard) ){
+                  modalOptions.keyboard = false;
+              }
+
+              if( angular.isUndefined(modalOptions.backdrop) ){
+                  modalOptions.backdrop = 'static';
+              }
+
+              if( angular.isUndefined(modalOptions.size) ){
+                  modalOptions.size = 'lg';
+              }
+
+              if( angular.isUndefined( modalOptions.resize ) ){
+                //set default value to false
+                modalOptions.resize = false;
+              }
+
+              if( angular.isUndefined( modalOptions.closeAsStateChange ) ){
+                //set default value to true, the ui-route state change successful, modal window will be closed
+                modalOptions.closeAsStateChange = true;
+              }
+          }
+          //end
+
           $modal.open = function(modalOptions) {
+             //set default configs
+            defaultConfigs(modalOptions);
+            //end
             var modalResultDeferred = $q.defer();
             var modalOpenedDeferred = $q.defer();
             var modalClosedDeferred = $q.defer();
@@ -711,7 +981,15 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.stackedMap'])
                   windowTemplateUrl: modalOptions.windowTemplateUrl,
                   size: modalOptions.size,
                   openedClass: modalOptions.openedClass,
-                  appendTo: modalOptions.appendTo
+                  appendTo: modalOptions.appendTo,
+                  //OUpgrade angular-ui-bootstrap to latest version
+                width: modalOptions.width,
+                height: modalOptions.height,
+                //end
+                //Layout of popup window, buttons and labels are out of windows when narrowing.
+                resize: modalOptions.resize,
+                closeAsStateChange: modalOptions.closeAsStateChange
+                //END
                 });
                 modalOpenedDeferred.resolve(true);
 

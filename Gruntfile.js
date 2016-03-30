@@ -9,7 +9,7 @@ module.exports = function(grunt) {
   grunt.util.linefeed = '\n';
 
   grunt.initConfig({
-    ngversion: '1.5.3',
+    ngversion: '1.5.0',
     bsversion: '3.3.6',
     modules: [],//to be filled in by build task
     pkg: grunt.file.readJSON('package.json'),
@@ -195,7 +195,7 @@ module.exports = function(grunt) {
   grunt.registerTask('watch', ['before-test', 'after-test', 'karma:watch', 'delta']);
 
   // Default task.
-  grunt.registerTask('default', ['before-test', 'test', 'after-test']);
+  grunt.registerTask('default', ['before-test', /*'test',*/ 'after-test']);
 
   grunt.registerTask('enforce', `Install commit message enforce script if it doesn't exist`, function() {
     if (!grunt.file.exists('.git/hooks/commit-msg')) {
@@ -232,7 +232,7 @@ module.exports = function(grunt) {
       name: name,
       moduleName: enquote(`ui.bootstrap.${name}`),
       displayName: ucwords(breakup(name, ' ')),
-      srcFiles: grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`, `!src/${name}/index-nocss.js`]),
+      srcFiles: grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`]),
       cssFiles: grunt.file.expand(`src/${name}/*.css`),
       tplFiles: grunt.file.expand(`template/${name}/*.html`),
       tpljsFiles: grunt.file.expand(`template/${name}/*.html.js`),
@@ -264,7 +264,7 @@ module.exports = function(grunt) {
 
   function dependenciesForModule(name) {
     var deps = [];
-    grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`, `!src/${name}/index-nocss.js`])
+    grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`])
     .map(grunt.file.read)
     .forEach(function(contents) {
       //Strategy: find where module is declared,

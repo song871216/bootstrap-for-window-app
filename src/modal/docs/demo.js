@@ -11,6 +11,7 @@ angular.module('ui.bootstrap.demo').controller('ModalDemoCtrl', function ($scope
       templateUrl: 'myModalContent.html',
       controller: 'ModalInstanceCtrl',
       size: size,
+      resize: true,
       resolve: {
         items: function () {
           return $scope.items;
