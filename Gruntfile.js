@@ -9,7 +9,7 @@ module.exports = function(grunt) {
   grunt.util.linefeed = '\n';
 
   grunt.initConfig({
-    ngversion: '1.5.0',
+    ngversion: '1.5.3',
     bsversion: '3.3.6',
     modules: [],//to be filled in by build task
     pkg: grunt.file.readJSON('package.json'),
@@ -232,7 +232,7 @@ module.exports = function(grunt) {
       name: name,
       moduleName: enquote(`ui.bootstrap.${name}`),
       displayName: ucwords(breakup(name, ' ')),
-      srcFiles: grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`]),
+      srcFiles: grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`, `!src/${name}/index-nocss.js`]),
       cssFiles: grunt.file.expand(`src/${name}/*.css`),
       tplFiles: grunt.file.expand(`template/${name}/*.html`),
       tpljsFiles: grunt.file.expand(`template/${name}/*.html.js`),
@@ -264,7 +264,7 @@ module.exports = function(grunt) {
 
   function dependenciesForModule(name) {
     var deps = [];
-    grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`])
+    grunt.file.expand([`src/${name}/*.js`, `!src/${name}/index.js`, `!src/${name}/index-nocss.js`])
     .map(grunt.file.read)
     .forEach(function(contents) {
       //Strategy: find where module is declared,
